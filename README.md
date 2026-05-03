@@ -35,26 +35,29 @@ The local workspace already matches this structure.
 
 ## Runtime model
 
-The notebook includes:
+The notebook now assumes dependencies are already installed in the target environment.
 
-1. creation of a Python 3.9 conda environment
-2. dependency installation
-3. Jupyter kernel registration
-4. preprocess, training, evaluation, and result export
+Install the environment from the terminal first, then open the notebook.
 
-If the server cannot directly access `huggingface.co`, set a mirror endpoint before running codec downloads, for example:
+Detailed terminal steps are documented in:
+
+- `INSTALL_SERVER.md`
+
+If the server cannot directly access `huggingface.co`, set a mirror endpoint before running codec downloads:
 
 ```bash
 export HF_ENDPOINT=https://hf-mirror.com
+export HUGGINGFACE_HUB_ENDPOINT=https://hf-mirror.com
 ```
 
 or set `codecs.hub_endpoint` in `configs/default.yaml`.
 
-Because Jupyter cannot switch the current kernel from inside the same running kernel, the notebook is designed in two phases:
+Because the notebook no longer installs dependencies, the workflow is simpler:
 
-1. run the bootstrap cells
-2. switch to the registered project kernel once
-3. run the remaining cells with `Run All`
+1. prepare the environment in the terminal
+2. open the notebook
+3. switch to `Python (finalproject26-py39)`
+4. run the remaining cells with `Run All`
 
 ## Reproducibility
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -134,6 +135,7 @@ def _validation_epoch(
 
 
 def train_codec_lm(config: ExperimentConfig, codec: CodecAdapter) -> TrainArtifacts:
+    warnings.filterwarnings("ignore")
     set_seed(config.project.seed)
     device = choose_device(config.training.device)
     codec = codec.to(device)
@@ -219,6 +221,29 @@ def train_codec_lm(config: ExperimentConfig, codec: CodecAdapter) -> TrainArtifa
             )
 
         save_json(history, history_path)
+        should_log_epoch = (
+            epoch == 1
+            or epoch == config.training.max_epochs
+            or epoch % config.training.log_every_epochs == 0
+        )
+        if should_log_epoch:
+            tqdm.write(
+                "[{codec}] epoch {epoch:03d}/{max_epoch:03d} "
+                "train_loss={train_loss:.4f} val_loss={val_loss:.4f} "
+                "train_pre={train_pre:.4f} train_post={train_post:.4f} "
+                "val_pre={val_pre:.4f} val_post={val_post:.4f} best_val={best_val:.4f}".format(
+                    codec=config.codec.name,
+                    epoch=epoch,
+                    max_epoch=config.training.max_epochs,
+                    train_loss=merged["train_loss"],
+                    val_loss=merged["val_loss"],
+                    train_pre=merged["train_pre_loss"],
+                    train_post=merged["train_post_loss"],
+                    val_pre=merged["val_pre_loss"],
+                    val_post=merged["val_post_loss"],
+                    best_val=best_val,
+                )
+            )
 
     return TrainArtifacts(
         run_dir=str(run_dir),

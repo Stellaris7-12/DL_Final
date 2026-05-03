@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from typing import Any
+import warnings
 
 import pandas as pd
 import soundfile as sf
@@ -88,6 +89,7 @@ def evaluate_codec_lm(
     codec: CodecAdapter,
     checkpoint_path: str | Path,
 ) -> EvaluationArtifacts:
+    warnings.filterwarnings("ignore")
     device = choose_device(config.training.device)
     codec = codec.to(device)
     codec.eval()

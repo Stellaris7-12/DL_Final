@@ -16,7 +16,7 @@ dataset:
 training:
   batch_size: 32
   num_workers: 8
-  max_epochs: 200
+  max_epochs: 50
   learning_rate: 0.0006
   weight_decay: 0.0
   grad_clip_norm: 3.0
@@ -24,6 +24,7 @@ training:
   amp: true
   device: cuda
   log_every_steps: 10
+  log_every_epochs: 5
   checkpoint_metric: val_loss
 
 model:

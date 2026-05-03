@@ -30,7 +30,7 @@ class DatasetConfig:
 class TrainingConfig:
     batch_size: int = 32
     num_workers: int = 8
-    max_epochs: int = 200
+    max_epochs: int = 50
     learning_rate: float = 6e-4
     weight_decay: float = 0.0
     grad_clip_norm: float = 3.0
@@ -38,6 +38,7 @@ class TrainingConfig:
     amp: bool = True
     device: str = "cuda"
     log_every_steps: int = 10
+    log_every_epochs: int = 5
     checkpoint_metric: str = "val_loss"
 
 
