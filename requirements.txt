@@ -18,3 +18,5 @@ huggingface_hub>=0.23
 einops>=0.8
 encodec>=0.1.1
 git+https://github.com/lifeiteng/naturalspeech3_facodec.git
+setuptools>=68,<81
+pyworld>=0.3.4
