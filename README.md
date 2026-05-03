@@ -1,28 +1,49 @@
 # WSJCAM0 Autoregressive Speech Prediction
 
-This repository implements the CUHK-Shenzhen deep learning final project on autoregressive speech prediction over discrete codec representations.
+This repository contains the final project implementation for autoregressive speech prediction over discrete codec representations on `WSJCAM0`.
 
 The project compares:
 
 - `FACodec`
 - `EnCodec`
 
-on the `WSJCAM0` dataset using:
+with the required objective metrics:
 
 - `STOI`
 - `PESQ`
 - `DNSMOS`
 
-## Layout
+## Main Files
 
-- `notebooks/run_project.ipynb`: one-click entry notebook
-- `src/`: reusable project code
-- `configs/`: experiment defaults
-- `artifacts/`: generated manifests, checkpoints, metrics, and samples
+- `notebooks/run_project.ipynb`: end-to-end experiment notebook
+- `src/`: reusable code for data, codecs, model, training, and evaluation
+- `configs/`: default experiment settings
+- `artifacts/`: generated manifests, checkpoints, metrics, figures, and audio samples
+- `report/`: LaTeX report source
 
-## Dataset
+## Submission-Oriented Documents
 
-The notebook assumes the unpacked dataset is available at:
+- [REPRODUCTION.md](./REPRODUCTION.md): full environment, data, training, evaluation, and expected-output guide
+- [SUBMISSION_CHECKLIST.md](./SUBMISSION_CHECKLIST.md): what should be submitted for the final project
+- [INSTALL_SERVER.md](./INSTALL_SERVER.md): terminal-only environment setup for the server
+- [report/README.md](./report/README.md): how to compile the LaTeX report
+
+## Current Reported Result Basis
+
+The checked-in report and downloaded artifacts correspond to the currently accepted experiment setting used for submission:
+
+- `10 epochs` for `FACodec`
+- `10 epochs` for `EnCodec`
+
+The exact quantitative comparison is stored in:
+
+- `artifacts/codec_comparison.csv`
+- `artifacts/report/codec_summary.csv`
+- `artifacts/report/codec_summary.tex`
+
+## Dataset Layout
+
+The code expects the unpacked dataset at:
 
 ```text
 ./wsj0/
@@ -31,59 +52,15 @@ The notebook assumes the unpacked dataset is available at:
   si_et_05/
 ```
 
-The local workspace already matches this structure.
+## Quick Start
 
-## Runtime model
+1. Prepare the environment by following `REPRODUCTION.md` or `INSTALL_SERVER.md`.
+2. Open `notebooks/run_project.ipynb`.
+3. Switch to the prepared kernel.
+4. Run the notebook cells.
 
-The notebook now assumes dependencies are already installed in the target environment.
+## Notes
 
-Install the environment from the terminal first, then open the notebook.
-
-Detailed terminal steps are documented in:
-
-- `INSTALL_SERVER.md`
-
-If the server cannot directly access `huggingface.co`, set a mirror endpoint before running codec downloads:
-
-```bash
-export HF_ENDPOINT=https://hf-mirror.com
-export HUGGINGFACE_HUB_ENDPOINT=https://hf-mirror.com
-```
-
-or set `codecs.hub_endpoint` in `configs/default.yaml`.
-
-Because the notebook no longer installs dependencies, the workflow is simpler:
-
-1. prepare the environment in the terminal
-2. open the notebook
-3. switch to `Python (finalproject26-py39)`
-4. run the remaining cells with `Run All`
-
-## Training behavior
-
-- Before each codec training run, the project automatically clears that codec's old checkpoints, history, and evaluation outputs under `artifacts/<codec>/`.
-- Training history is saved to `artifacts/<codec>/history.json`.
-- Best checkpoints are saved to `artifacts/<codec>/checkpoints/best.pt`.
-
-## Report materials
-
-After both codecs finish, the notebook exports report-ready materials to:
-
-```text
-artifacts/report/
-```
-
-This includes:
-
-- `codec_summary.csv`
-- `codec_summary.md`
-- `codec_summary.tex`
-- `codec_metric_comparison.png`
-- `facodec_training_curves.png`
-- `encodec_training_curves.png`
-
-## Reproducibility
-
-The intended production environment is AutoDL with a self-managed Python 3.9 environment inside the base image.
-
-The implementation keeps the main logic in Python modules so the same pipeline can be run from the notebook or from scripts.
+- Each new codec run automatically clears old checkpoints, evaluation files, and history for that codec.
+- The notebook exports report-ready plots and tables to `artifacts/report/`.
+- The LaTeX report uses local figure copies in `report/figures/`.
