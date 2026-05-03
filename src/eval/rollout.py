@@ -36,7 +36,7 @@ def _load_checkpoint_model(
     codec: CodecAdapter,
     device: torch.device,
 ) -> CodecAutoregressivePredictor:
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model = build_predictor(config, codec).to(device)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()

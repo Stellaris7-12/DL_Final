@@ -59,6 +59,29 @@ Because the notebook no longer installs dependencies, the workflow is simpler:
 3. switch to `Python (finalproject26-py39)`
 4. run the remaining cells with `Run All`
 
+## Training behavior
+
+- Before each codec training run, the project automatically clears that codec's old checkpoints, history, and evaluation outputs under `artifacts/<codec>/`.
+- Training history is saved to `artifacts/<codec>/history.json`.
+- Best checkpoints are saved to `artifacts/<codec>/checkpoints/best.pt`.
+
+## Report materials
+
+After both codecs finish, the notebook exports report-ready materials to:
+
+```text
+artifacts/report/
+```
+
+This includes:
+
+- `codec_summary.csv`
+- `codec_summary.md`
+- `codec_summary.tex`
+- `codec_metric_comparison.png`
+- `facodec_training_curves.png`
+- `encodec_training_curves.png`
+
 ## Reproducibility
 
 The intended production environment is AutoDL with a self-managed Python 3.9 environment inside the base image.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import shutil
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,22 @@ class TrainArtifacts:
     train_manifest_path: str
     val_manifest_path: str
     history_path: str
+
+
+def cleanup_previous_run(config: ExperimentConfig) -> None:
+    run_dir = config.artifacts_dir / config.codec.name
+    if not run_dir.exists():
+        return
+
+    for target in [run_dir / "checkpoints", run_dir / "evaluation"]:
+        if target.exists():
+            shutil.rmtree(target)
+
+    history_path = run_dir / "history.json"
+    if history_path.exists():
+        history_path.unlink()
+
+    tqdm.write(f"[{config.codec.name}] cleared previous checkpoints, history, and evaluation artifacts")
 
 
 def build_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader, str, str]:
@@ -145,6 +162,7 @@ def train_codec_lm(config: ExperimentConfig, codec: CodecAdapter) -> TrainArtifa
         param.requires_grad = False
     codec.eval()
 
+    cleanup_previous_run(config)
     run_dir = ensure_dir(config.artifacts_dir / config.codec.name)
     checkpoints_dir = ensure_dir(run_dir / "checkpoints")
     history_path = run_dir / "history.json"
@@ -215,7 +233,15 @@ def train_codec_lm(config: ExperimentConfig, codec: CodecAdapter) -> TrainArtifa
             torch.save(
                 {
                     "model_state_dict": model.state_dict(),
-                    "config": config,
+                    "config": {
+                        "project": config.project.__dict__,
+                        "dataset": config.dataset.__dict__,
+                        "training": config.training.__dict__,
+                        "model": config.model.__dict__,
+                        "evaluation": config.evaluation.__dict__,
+                        "codecs": config.codecs.__dict__,
+                        "codec": config.codec.__dict__,
+                    },
                     "epoch": epoch,
                     "metrics": merged,
                 },

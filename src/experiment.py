@@ -7,7 +7,7 @@ from typing import Any
 from src.config import ExperimentConfig, load_experiment_config
 from src.eval.rollout import EvaluationArtifacts
 from src.pipeline import run_evaluation, run_training
-from src.reporting import summarize_codecs
+from src.reporting import prepare_report_materials, summarize_codecs
 from src.train.trainer import TrainArtifacts
 
 
@@ -59,3 +59,15 @@ def run_codec_experiment(
 
 def compare_codecs(summary_paths: dict[str, str | Path]):
     return summarize_codecs(summary_paths)
+
+
+def build_report_assets(
+    history_paths: dict[str, str | Path],
+    summary_paths: dict[str, str | Path],
+    output_dir: str | Path = "artifacts/report",
+):
+    return prepare_report_materials(
+        history_paths=history_paths,
+        summary_paths=summary_paths,
+        output_dir=output_dir,
+    )

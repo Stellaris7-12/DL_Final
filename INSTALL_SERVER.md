@@ -64,3 +64,5 @@ Python (finalproject26-py39)
 - Default `num_workers` is `0` to avoid Jupyter DataLoader multiprocessing shutdown issues.
 - The notebook config already sets the Hugging Face mirror endpoint for runtime downloads.
 - Training logs now print a persistent summary every `5` epochs.
+- Each new codec run automatically clears the old checkpoint/history/evaluation files for that codec.
+- The notebook also exports report-ready tables and figures to `artifacts/report/`.
