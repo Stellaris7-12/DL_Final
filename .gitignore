@@ -9,3 +9,5 @@ __pycache__/
 final_proj_wsj0.zip
 # 忽略 wsj0 文件夹及其所有内容
 wsj0/
+
+report/
