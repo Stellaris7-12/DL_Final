@@ -8,7 +8,10 @@ from src.config import ExperimentConfig
 
 def build_codec_adapter(config: ExperimentConfig) -> CodecAdapter:
     if config.codec.name == "facodec":
-        return FACodecAdapter(repo_id=config.codecs.facodec_repo_id)
+        return FACodecAdapter(
+            repo_id=config.codecs.facodec_repo_id,
+            hub_endpoint=config.codecs.hub_endpoint,
+        )
     if config.codec.name == "encodec":
         return EncodecAdapter(
             model_name=config.codecs.encodec_model,

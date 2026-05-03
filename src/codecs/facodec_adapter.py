@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import torch
@@ -10,7 +11,11 @@ from src.utils.audio import resample_audio
 
 
 class FACodecAdapter(CodecAdapter):
-    def __init__(self, repo_id: str = "amphion/naturalspeech3_facodec") -> None:
+    def __init__(
+        self,
+        repo_id: str = "amphion/naturalspeech3_facodec",
+        hub_endpoint: str | None = None,
+    ) -> None:
         super().__init__()
         try:
             from ns3_codec import FACodecDecoder, FACodecEncoder
@@ -20,8 +25,25 @@ class FACodecAdapter(CodecAdapter):
                 "Install dependencies from requirements.txt."
             ) from exc
 
-        encoder_ckpt = hf_hub_download(repo_id=repo_id, filename="ns3_facodec_encoder.bin")
-        decoder_ckpt = hf_hub_download(repo_id=repo_id, filename="ns3_facodec_decoder.bin")
+        endpoint = (
+            hub_endpoint
+            or os.environ.get("HF_ENDPOINT")
+            or os.environ.get("HUGGINGFACE_HUB_ENDPOINT")
+        )
+        download_kwargs: dict[str, Any] = {}
+        if endpoint:
+            download_kwargs["endpoint"] = endpoint.rstrip("/")
+
+        encoder_ckpt = hf_hub_download(
+            repo_id=repo_id,
+            filename="ns3_facodec_encoder.bin",
+            **download_kwargs,
+        )
+        decoder_ckpt = hf_hub_download(
+            repo_id=repo_id,
+            filename="ns3_facodec_decoder.bin",
+            **download_kwargs,
+        )
 
         self.encoder = FACodecEncoder(
             ngf=32,
@@ -57,6 +79,7 @@ class FACodecAdapter(CodecAdapter):
         self.samples_per_frame = 200
         self.frame_shift_seconds = self.samples_per_frame / self.sample_rate
         self.repo_id = repo_id
+        self.hub_endpoint = endpoint
 
     def frame_config(self) -> CodecFrameConfig:
         return CodecFrameConfig(

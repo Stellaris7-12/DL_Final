@@ -64,6 +64,7 @@ class CodecsConfig:
     target_bandwidth_kbps: float = 6.0
     facodec_repo_id: str = "amphion/naturalspeech3_facodec"
     encodec_model: str = "24khz"
+    hub_endpoint: str | None = None
 
 
 @dataclass

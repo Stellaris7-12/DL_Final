@@ -44,3 +44,4 @@ codecs:
   target_bandwidth_kbps: 6.0
   facodec_repo_id: amphion/naturalspeech3_facodec
   encodec_model: 24khz
+  hub_endpoint: null
