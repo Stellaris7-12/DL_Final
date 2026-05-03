@@ -1,0 +1,46 @@
+project:
+  name: wsj0_codec_lm
+  seed: 42
+  artifacts_dir: artifacts
+
+dataset:
+  root: wsj0
+  train_split: si_tr_s
+  val_split: si_dt_05
+  test_split: si_et_05
+  sample_rate: 16000
+  segment_seconds: 4.0
+  normalize: true
+  mono: true
+
+training:
+  batch_size: 32
+  num_workers: 8
+  max_epochs: 200
+  learning_rate: 0.0006
+  weight_decay: 0.0
+  grad_clip_norm: 3.0
+  context_frames: 80
+  amp: true
+  device: cuda
+  log_every_steps: 10
+  checkpoint_metric: val_loss
+
+model:
+  hidden_dim: 512
+  ff_dim: 2048
+  num_layers: 12
+  num_heads: 8
+  dropout: 0.1
+  token_embedding_dim: 512
+
+evaluation:
+  max_eval_files: null
+  dnsmos_personalized: false
+  save_audio_examples: 8
+  pesq_mode: wb
+
+codecs:
+  target_bandwidth_kbps: 6.0
+  facodec_repo_id: amphion/naturalspeech3_facodec
+  encodec_model: 24khz
