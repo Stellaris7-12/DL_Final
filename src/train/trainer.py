@@ -63,6 +63,7 @@ def build_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader,
         num_workers=config.training.num_workers,
         collate_fn=collate_audio_batch,
         pin_memory=torch.cuda.is_available(),
+        persistent_workers=config.training.num_workers > 0,
     )
     val_loader = DataLoader(
         val_ds,
@@ -71,6 +72,7 @@ def build_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader,
         num_workers=config.training.num_workers,
         collate_fn=collate_audio_batch,
         pin_memory=torch.cuda.is_available(),
+        persistent_workers=config.training.num_workers > 0,
     )
     return train_loader, val_loader, str(train_manifest_path), str(val_manifest_path)
 

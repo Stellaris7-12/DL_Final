@@ -61,5 +61,6 @@ Python (finalproject26-py39)
 ## Notes
 
 - Default training is now `50 epochs` for `FACodec` and `50 epochs` for `EnCodec`.
+- Default `num_workers` is `0` to avoid Jupyter DataLoader multiprocessing shutdown issues.
 - The notebook config already sets the Hugging Face mirror endpoint for runtime downloads.
 - Training logs now print a persistent summary every `5` epochs.

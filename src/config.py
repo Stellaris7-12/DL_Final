@@ -29,7 +29,7 @@ class DatasetConfig:
 @dataclass
 class TrainingConfig:
     batch_size: int = 32
-    num_workers: int = 8
+    num_workers: int = 0
     max_epochs: int = 50
     learning_rate: float = 6e-4
     weight_decay: float = 0.0
