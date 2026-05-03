@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import inspect
 from typing import Any
 
 import torch
 
 from src.codecs.base import CodecAdapter, CodecBatch, CodecFrameConfig
-from src.utils.audio import resample_audio
+from src.utils.audio import prepare_waveform, resample_audio
 
 
 class EncodecAdapter(CodecAdapter):
@@ -29,6 +30,17 @@ class EncodecAdapter(CodecAdapter):
         self.sample_rate = getattr(self.model, "sample_rate", 24_000)
         self.channels = getattr(self.model, "channels", 1)
         self.frame_rate = getattr(self.model, "frame_rate", 75)
+
+    def _call_with_rate(self, fn, values: torch.Tensor) -> Any:
+        parameters = inspect.signature(fn).parameters
+        kwargs: dict[str, Any] = {}
+        if "sample_rate" in parameters:
+            kwargs["sample_rate"] = self.sample_rate
+        if "frame_rate" in parameters:
+            kwargs["frame_rate"] = self.frame_rate
+        if "bandwidth" in parameters:
+            kwargs["bandwidth"] = self.target_bandwidth_kbps
+        return fn(values, **kwargs)
 
     def frame_config(self) -> CodecFrameConfig:
         samples_per_frame = int(round(self.sample_rate / self.frame_rate))
@@ -61,8 +73,8 @@ class EncodecAdapter(CodecAdapter):
     def encode(self, waveform: torch.Tensor, sample_rate: int) -> CodecBatch:
         prepared = self._prepare(waveform, sample_rate)
         encoded = self.model.encoder(prepared)
-        tokens = self.model.quantizer.encode(encoded)
-        post = self.model.quantizer.decode(tokens)
+        tokens = self._call_with_rate(self.model.quantizer.encode, encoded)
+        post = self._call_with_rate(self.model.quantizer.decode, tokens)
         return CodecBatch(
             pre_quant_embeddings=encoded.transpose(1, 2),
             tokens=tokens.long(),
@@ -72,11 +84,20 @@ class EncodecAdapter(CodecAdapter):
 
     def quantize_embeddings(self, embeddings: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         embeddings = embeddings.transpose(1, 2)
-        tokens = self.model.quantizer.encode(embeddings)
-        post = self.model.quantizer.decode(tokens)
+        tokens = self._call_with_rate(self.model.quantizer.encode, embeddings)
+        post = self._call_with_rate(self.model.quantizer.decode, tokens)
         return tokens.long(), post.transpose(1, 2)
 
     def decode_tokens(self, tokens: torch.Tensor, aux: dict[str, Any] | None = None) -> torch.Tensor:
-        quantized = self.model.quantizer.decode(tokens.long())
+        quantized = self._call_with_rate(self.model.quantizer.decode, tokens.long())
         decoded = self.model.decoder(quantized)
         return decoded.squeeze(1)
+
+    def prepare_reference_waveform(self, waveform: torch.Tensor, sample_rate: int) -> torch.Tensor:
+        return prepare_waveform(
+            waveform.unsqueeze(0) if waveform.dim() == 1 else waveform,
+            source_sr=sample_rate,
+            target_sr=self.sample_rate,
+            mono=True,
+            normalize=False,
+        ).squeeze(0)

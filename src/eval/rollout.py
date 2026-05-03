@@ -18,7 +18,7 @@ from src.eval.metrics import align_waveforms, build_metric_fns
 from src.models.predictor import CodecAutoregressivePredictor
 from src.train.trainer import build_predictor
 from src.train.windows import _normalize_token_layout
-from src.utils.audio import prepare_waveform
+from src.utils.audio import prepare_waveform, resample_audio
 from src.utils.runtime import choose_device, ensure_dir
 
 
@@ -50,11 +50,12 @@ def _rollout_single(
     waveform: torch.Tensor,
     sample_rate: int,
     context_frames: int,
-) -> tuple[torch.Tensor, torch.Tensor, dict[str, Any]]:
+) -> tuple[torch.Tensor, torch.Tensor, int, dict[str, Any]]:
     codec_batch = codec.encode(waveform.unsqueeze(0), sample_rate)
     pre = codec_batch.pre_quant_embeddings
     tokens = _normalize_token_layout(codec_batch.tokens, batch_size=1)
     aux = codec_batch.aux
+    frame_cfg = codec.frame_config()
 
     total_frames = pre.size(1)
     if total_frames <= context_frames:
@@ -74,14 +75,15 @@ def _rollout_single(
 
     future_pred_tokens = predicted_tokens[:, :, context_frames:]
     recon_future = codec.decode_tokens(future_pred_tokens, aux=aux).squeeze(0)
-
-    frame_cfg = codec.frame_config()
     future_start = context_frames * frame_cfg.samples_per_frame
-    prepared = waveform
-    if waveform.dim() == 2:
-        prepared = waveform.squeeze(0)
+    if hasattr(codec, "prepare_reference_waveform"):
+        prepared = codec.prepare_reference_waveform(waveform, sample_rate)
+    else:
+        prepared = waveform
+        if waveform.dim() == 2:
+            prepared = waveform.squeeze(0)
     target_future = prepared[future_start:]
-    return recon_future, target_future, aux
+    return recon_future, target_future, frame_cfg.sample_rate, aux
 
 
 def evaluate_codec_lm(
@@ -126,7 +128,7 @@ def evaluate_codec_lm(
             normalize=config.dataset.normalize,
         ).squeeze(0).to(device)
 
-        pred_future, target_future, _ = _rollout_single(
+        pred_future, target_future, codec_sample_rate, _ = _rollout_single(
             model=model,
             codec=codec,
             waveform=waveform,
@@ -135,6 +137,9 @@ def evaluate_codec_lm(
         )
         pred_future = pred_future.detach().cpu()
         target_future = target_future.detach().cpu()
+        if codec_sample_rate != config.dataset.sample_rate:
+            pred_future = resample_audio(pred_future.unsqueeze(0), codec_sample_rate, config.dataset.sample_rate).squeeze(0)
+            target_future = resample_audio(target_future.unsqueeze(0), codec_sample_rate, config.dataset.sample_rate).squeeze(0)
         pred_future, target_future = align_waveforms(pred_future, target_future)
 
         row_metrics = {
